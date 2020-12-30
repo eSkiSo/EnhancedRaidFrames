@@ -192,6 +192,7 @@ function EnhancedRaidFrames:UpdateIndicators(frame, setAppearance)
 
 	-- Update unit auras
 	self:UpdateUnitAuras(frame.unit)
+	print("UPDATEDUNITAURAS "..frame.unit)
 
 	-- Loop over all 9 indicators and process them individually
 	for i = 1, 9 do
@@ -244,6 +245,12 @@ function EnhancedRaidFrames:ProcessIndicator(indicatorFrame, unit)
 		-- we want to stop only when castBy == "player" if we are tracking "mine only"
 		if foundAura and (not self.db.profile[i].mineOnly or (self.db.profile[i].mineOnly and castBy == "player")) then
 			break
+		end
+
+		-- final check - see if the aura is a conditional statement
+		--foundAura, icon, count, duration, expirationTime, debuffType, castBy, auraIndex, auraType = self:ProcessOperators(auraName, unit)
+		if(not foundAura) then
+			self:ProcessOperators(auraName, unit)
 		end
 	end
 
@@ -419,6 +426,8 @@ end
 --this function returns foundAura, icon, count, duration, expirationTime, debuffType, castBy, auraIndex, auraType
 function EnhancedRaidFrames:QueryAuraInfo(auraName, unit)
 	-- Check if the aura exist on the unit
+	print("query "..unit)
+	print(unitAuras[2])
 	for _,v in pairs(unitAuras[unit]) do --loop through list of auras
 		if (tonumber(auraName) and v.spellID == tonumber(auraName)) or v.auraName == auraName or (v.auraType == "debuff" and v.debuffType == auraName) then
 			return true, v.icon, v.count, v.duration, v.expirationTime, v.debuffType, v.castBy, v.auraIndex, v.auraType
@@ -481,7 +490,7 @@ function EnhancedRaidFrames:UpdateUnitAuras(unit)
 			auraTable.expirationTime = expirationTime
 			auraTable.castBy = castBy
 			auraTable.spellID = spellID
-
+			print("inserting1 "..unit)
 			table.insert(unitAuras[unit], auraTable)
 		end
 		i = i + 1
@@ -517,11 +526,70 @@ function EnhancedRaidFrames:UpdateUnitAuras(unit)
 			auraTable.expirationTime = expirationTime
 			auraTable.castBy = castBy
 			auraTable.spellID = spellID
-
+			print("inserting2 "..unit)
 			table.insert(unitAuras[unit], auraTable)
 		end
 		i = i + 1
 	end
+end
+
+-- Split a string into an array, given a divider regex
+function SplitString(inputstr, sep)
+	local arr = {}
+	local startIndex, endIndex = string.find(inputstr, sep)
+	print("start: ", startIndex)
+	table.insert(arr, string.sub(inputstr, 0, startIndex))
+	table.insert(arr, string.sub(inputstr, endIndex+1))
+	return arr
+end
+
+-- clean whitespace
+function StripWhiteSpace(inputstr)
+	return string.gsub(inputstr, "^%s*(.-)%s*$", "%1") --strip any leading or trailing whitespace
+end
+------------------------------------------------------
+--- check aura input for (and, or, not) operators ----
+------------------------------------------------------
+-- recursive. At base level, simply return whether comdition is true. Final return should reflect truthiness of entire statement.
+function EnhancedRaidFrames:ProcessOperators(auraName)
+	print("processing ", auraName)
+
+	-- if "AND" operator is used, make sure all conditions are true before allowing foundAura to be true
+	if string.find(auraName, " and ") then
+		local args = SplitString(auraName, " and ")
+		args[1] = StripWhiteSpace(args[1])
+		args[2] = StripWhiteSpace(args[2])
+		print("args: \""..args[1].."\" \""..args[2].."\"")
+		if(self:ProcessOperators(args[1]) and self:ProcessOperators(args[2])) then
+			print("AND is true")
+		else
+			print("AND fail")
+		end
+	end
+
+	-- -- if "OR" operator is used, make sure any conditions are true before allowing foundAura to be true
+	if string.find(auraName, " or ") then
+		local args = SplitString(auraName, " or ")
+		if(self:ProcessOperators(args[1]) or self:ProcessOperators(args[2])) then
+			print("OR is true")
+		else
+			print("OR fail")
+		end
+	end
+
+	-- -- if "!" operator is used, make sure following condition is false before allowing foundAura to be true
+	if string.find(auraName, "!") then
+		local args = SplitString(auraName, "!")
+		print("args: ", args)
+		if(not self:ProcessOperators(args[1])) then
+			print("! is true")
+		else
+			print("! fail")
+		end
+	end
+
+	print("end loop "..auraName)
+	return self:QueryAuraInfo(auraName, self.unit)
 end
 
 ------------------------------------------------
