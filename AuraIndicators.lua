@@ -534,7 +534,7 @@ function EnhancedRaidFrames:UpdateUnitAuras(unit)
 end
 
 -- Split a string into an array, given a divider regex
-function SplitString(inputstr, sep)
+local function SplitString(inputstr, sep)
 	local arr = {}
 	local startIndex, endIndex = string.find(inputstr, sep)
 	print("start: ", startIndex)
@@ -544,14 +544,14 @@ function SplitString(inputstr, sep)
 end
 
 -- clean whitespace
-function StripWhiteSpace(inputstr)
+local function StripWhiteSpace(inputstr)
 	return string.gsub(inputstr, "^%s*(.-)%s*$", "%1") --strip any leading or trailing whitespace
 end
 ------------------------------------------------------
 --- check aura input for (and, or, not) operators ----
 ------------------------------------------------------
 -- recursive. At base level, simply return whether comdition is true. Final return should reflect truthiness of entire statement.
-function EnhancedRaidFrames:ProcessOperators(auraName)
+function EnhancedRaidFrames:ProcessOperators(auraName, unit)
 	print("processing ", auraName)
 
 	-- if "AND" operator is used, make sure all conditions are true before allowing foundAura to be true
@@ -589,7 +589,7 @@ function EnhancedRaidFrames:ProcessOperators(auraName)
 	end
 
 	print("end loop "..auraName)
-	return self:QueryAuraInfo(auraName, self.unit)
+	return self:QueryAuraInfo(auraName, unit)
 end
 
 ------------------------------------------------
