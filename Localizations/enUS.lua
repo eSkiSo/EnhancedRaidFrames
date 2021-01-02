@@ -39,6 +39,7 @@ L["horizontalOffset_desc"] = "The horizontal offset percentage relative to the s
 
 L["Example"] = true
 L["Wildcards"] = true
+L["Operators"] = true
 L["Color"] = true
 
 L["Color By Debuff Type"] = true
@@ -153,6 +154,8 @@ L["diseaseWildcard_desc"] = "any disease debuffs"
 L["magicWildcard_desc"] = "any magic debuffs"
 L["pvpWildcard_desc"] = "if the unit is PvP flagged"
 L["totWildcard_desc"] = "if the unit is the target of target"
+
+L["operator_usage"] = "You may also use AND, OR, and ! to determine if an indicator appears. ! implies that an aura is NOT found. Examples:"
 
 L["Visibility and Behavior"] = true
 

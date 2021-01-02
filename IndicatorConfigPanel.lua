@@ -94,7 +94,15 @@ function EnhancedRaidFrames:CreateIndicatorOptions()
 						gsub(brownCode, "<text>", "Disease")..": "..L["diseaseWildcard_desc"].."\n"..
 						gsub(blueCode, "<text>", "Magic")..": "..L["magicWildcard_desc"].."\n"..
 						gsub(redCode, "<text>", "PvP")..": "..L["pvpWildcard_desc"].."\n"..
-						gsub(redCode, "<text>", "ToT")..": "..L["totWildcard_desc"].."\n",
+						gsub(redCode, "<text>", "ToT")..": "..L["totWildcard_desc"].."\n"..
+						"\n"..
+						L["Operators"]..":\n"..
+						L["operator_usage"].."\n"..
+						"\n"..
+						"Battle Shout AND Arcane Intellect".."\n"..
+						"Beacon of Faith OR Beacon of Light".."\n"..
+						"!Arcane Intellect".."\n"..
+						"\n",
 				multiline = 5,
 				get = function() return self.db.profile[i].auras end,
 				set = function(_, value)
