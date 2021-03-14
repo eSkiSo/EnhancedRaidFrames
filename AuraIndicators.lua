@@ -429,9 +429,14 @@ function EnhancedRaidFrames:ProcessIndicator(indicatorFrame, unit)
 		if indicatorFrame.oldAura == "debuff" then
 			-- test with blizzards: CompactUnitFrame_UpdateHealthColor(frame)
 			-- for now set the color to class color, really needs to be a setting
-			local localizedClass, englishClass = UnitClass(frame.unit);
-			local classColor = RAID_CLASS_COLORS[englishClass];
-			frame.healthBar:SetStatusBarColor(classColor.r, classColor.g, classColor.b);
+			-- Changed to respect user choise of class colors or green
+			if frame.optionTable.useClassColors then
+				local localizedClass, englishClass = UnitClass(frame.unit);
+				local classColor = RAID_CLASS_COLORS[englishClass];
+				frame.healthBar:SetStatusBarColor(classColor.r, classColor.g, classColor.b);
+			else 
+				frame.healthBar:SetStatusBarColor(0.0, 1.0, 0.0);
+			end
 		end
 		indicatorFrame:Hide() --hide the frame
 		--if no aura is found and we're not showing missing, clear animations and hide the frame
