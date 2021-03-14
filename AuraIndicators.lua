@@ -197,10 +197,12 @@ end
 
 -- process a single indicator and apply visuals
 function EnhancedRaidFrames:ProcessIndicator(indicatorFrame, unit)
+	local frame = indicatorFrame:GetParent() -- get parent frame
 	local i = indicatorFrame.position
 
 	local foundAura, icon, count, duration, expirationTime, debuffType, castBy, auraIndex, auraType, _
 
+	indicatorFrame.oldAura = indicatorFrame.auraType -- store indicator aura type for color reset
 	--reset auraIndex and auraType for tooltip
 	indicatorFrame.auraIndex = nil
 	indicatorFrame.auraType = nil
@@ -252,6 +254,29 @@ function EnhancedRaidFrames:ProcessIndicator(indicatorFrame, unit)
 		-- set auraIndex and auraType for tooltip
 		indicatorFrame.auraIndex = auraIndex
 		indicatorFrame.auraType = auraType
+		
+		
+		----------------------------------------------------------------------------------
+		--- make this a user setting to change healthbar color according to debuff
+		----------------------------------------------------------------------------------
+		-- Check if spell is dispellabel by player
+		local dispellabel = UnitAura(unit, auraIndex, 'HARMFUL|RAID')
+
+		-- This could be a setting, let the player choose if wants the frames to change color
+		-- even if they cannot dispel it, as it is should only change if dispellabel
+		if debuffType == "poison" and dispellabel then
+			frame.healthBar:SetStatusBarColor(0.0, 0.6, 0.0) -- poison green
+		elseif debuffType == "curse" and dispellabel then
+			frame.healthBar:SetStatusBarColor(0.6, 0.0, 1.0) -- curse purple
+		elseif debuffType == "disease" and dispellabel then
+			frame.healthBar:SetStatusBarColor(0.6, 0.4, 0.0) -- disease brown
+		elseif debuffType == "magic" and dispellabel then
+			frame.healthBar:SetStatusBarColor(0.2, 0.6, 1.0) -- magic blue
+		else
+			if not self.db.profile.showDispellableDebuffs then
+				frame.healthBar:SetStatusBarColor(0.8, 0.0, 0.0) --red on other debuffs
+			end
+		end
 
 		---------------------------------
 		--- process icon to show
@@ -400,6 +425,14 @@ function EnhancedRaidFrames:ProcessIndicator(indicatorFrame, unit)
 		indicatorFrame:Show() --show the frame
 
 	else
+		-- if unit was debuffed but it is not currently reset the color (remove debuff color)
+		if indicatorFrame.oldAura == "debuff" then
+			-- test with blizzards: CompactUnitFrame_UpdateHealthColor(frame)
+			-- for now set the color to class color, really needs to be a setting
+			local localizedClass, englishClass = UnitClass(frame.unit);
+			local classColor = RAID_CLASS_COLORS[englishClass];
+			frame.healthBar:SetStatusBarColor(classColor.r, classColor.g, classColor.b);
+		end
 		indicatorFrame:Hide() --hide the frame
 		--if no aura is found and we're not showing missing, clear animations and hide the frame
 		CooldownFrame_Clear(indicatorFrame.Cooldown)
